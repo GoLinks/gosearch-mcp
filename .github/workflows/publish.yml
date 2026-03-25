@@ -1,0 +1,48 @@
+name: Publish Docker image
+
+on:
+  push:
+    branches: [main]
+
+  workflow_dispatch:
+
+permissions:
+  packages: write
+  contents: read
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker image to GHCR
+    runs-on: [self-hosted, dockup, gosearch]
+    env:
+      UNIQUE_WORKDIR: "${{ github.run_id }}"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: ${{ github.workspace }}/${{ env.UNIQUE_WORKDIR }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        env:
+          WORKDIR: ${{ github.workspace }}/${{ env.UNIQUE_WORKDIR }}
+        run: |
+          docker build \
+            -t ghcr.io/golinks/gosearch-mcp:latest \
+            -t ghcr.io/golinks/gosearch-mcp:${{ github.sha }} \
+            "$WORKDIR"
+          docker push ghcr.io/golinks/gosearch-mcp:latest
+          docker push ghcr.io/golinks/gosearch-mcp:${{ github.sha }}
+
+      - name: Cleanup
+        if: always()
+        run: |
+          echo "Cleaning up working directory..."
+          rm -rf "${GITHUB_WORKSPACE}/${{ env.UNIQUE_WORKDIR }}"
