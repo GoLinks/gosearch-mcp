@@ -1,6 +1,5 @@
-import os
-
 import httpx
+from fastmcp import Context
 
 GOSEARCH_API_URL = "https://api.gosearch.ai"
 
@@ -10,8 +9,13 @@ http_client = httpx.AsyncClient(
 )
 
 
-def get_api_token() -> str:
-    token = os.environ.get("GOSEARCH_API_TOKEN")
-    if not token:
-        raise ValueError("GOSEARCH_API_TOKEN environment variable is not set.")
-    return token
+def get_authorization_header(ctx: Context) -> str:
+    """Return the incoming request Authorization header for forwarding to GoSearch APIs."""
+    if ctx.request_context is None or ctx.request_context.request is None:
+        raise PermissionError("Missing request context.")
+
+    authorization = ctx.request_context.request.headers.get("authorization")
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise PermissionError("Missing bearer token.")
+
+    return authorization
