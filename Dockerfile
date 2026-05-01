@@ -13,4 +13,4 @@ COPY --chown=appuser:appuser src/ src/
 
 USER appuser
 
-CMD ["uv", "run", "fastmcp", "run", "src/gosearch_mcp/server.py"]
+CMD ["uv", "run", "fastmcp", "run", "src/gosearch_mcp/server.py", "--transport", "streamable-http", "--host", "0.0.0.0", "--port", "8000", "--path", "/mcp/"]
