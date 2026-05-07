@@ -1,32 +1,38 @@
 # GoSearch MCP Server
 
-An MCP server that exposes [GoSearch](https://www.gosearch.ai) enterprise search as a tool for AI assistants. Built with [FastMCP](https://gofastmcp.com).
+An MCP server that exposes [GoSearch](https://www.gosearch.ai) enterprise search and GoAI as tools for AI assistants. Built with [FastMCP](https://gofastmcp.com).
 
-## Setup
+## Hosted HTTP Mode
 
-Add this to your MCP client config (e.g., `.cursor/mcp.json`):
+This server is intended to run as a hosted remote MCP server over Streamable HTTP.
 
-```json
-{
-  "mcpServers": {
-    "gosearch": {
-      "command": "docker",
-      "args": ["run", "-i", "--rm", "-e", "GOSEARCH_API_TOKEN", "ghcr.io/golinks/gosearch-mcp"],
-      "env": {
-        "GOSEARCH_API_TOKEN": "YOUR_API_TOKEN"
-      }
-    }
-  }
-}
+Public endpoint shape:
+
+```text
+https://mcp.gosearch.ai/mcp/
+```
+
+Local development endpoint shape:
+
+```text
+http://localhost:8000/mcp/
 ```
 
 ## Authentication
 
-Generate a GoSearch API token from your workspace settings and set it as `GOSEARCH_API_TOKEN`.
+The hosted server does not use a shared `GOSEARCH_API_TOKEN`.
+
+MCP clients should send a per-user GoSearch OAuth/API bearer token with each request:
+
+```http
+Authorization: Bearer YOUR_TOKEN
+```
+
+The MCP server forwards that header to `api.gosearch.ai`. GoSearch remains responsible for token validation, scope enforcement, refresh, storage, and revocation.
 
 ## Local Development
 
-For local development, this project uses Python `3.12` and [`uv`](https://docs.astral.sh/uv/).
+This project uses Python `3.12` and [`uv`](https://docs.astral.sh/uv/).
 
 1. Install Python `3.12`.
 2. Install `uv`.
@@ -36,37 +42,30 @@ For local development, this project uses Python `3.12` and [`uv`](https://docs.a
 uv sync
 ```
 
-4. Export a GoSearch API token:
+4. Run the MCP server locally:
 
 ```bash
-export GOSEARCH_API_TOKEN="YOUR_API_TOKEN"
+uv run fastmcp run src/gosearch_mcp/server.py \
+  --transport streamable-http \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --path /mcp/
 ```
 
-5. Run the MCP server locally:
+5. Verify health and OAuth discovery:
 
 ```bash
-uv run fastmcp run src/gosearch_mcp/server.py
+curl http://localhost:8000/health
+curl http://localhost:8000/.well-known/oauth-authorization-server
 ```
 
-If you want to point Cursor at your local checkout while developing, use a config like this:
+## Docker
 
-```json
-{
-  "mcpServers": {
-    "gosearch": {
-      "command": "uv",
-      "args": [
-        "run",
-        "fastmcp",
-        "run",
-        "/absolute/path/to/gosearch-mcp/src/gosearch_mcp/server.py"
-      ],
-      "env": {
-        "GOSEARCH_API_TOKEN": "YOUR_API_TOKEN"
-      }
-    }
-  }
-}
+Build and run locally:
+
+```bash
+docker build -t gosearch-mcp .
+docker run --rm -p 8000:8000 gosearch-mcp
 ```
 
 ## Tools
@@ -74,3 +73,4 @@ If you want to point Cursor at your local checkout while developing, use a confi
 | Tool | Description |
 |------|-------------|
 | `search` | Search GoSearch for relevant results |
+| `goai_response` | Get an AI-generated response from GoAI |

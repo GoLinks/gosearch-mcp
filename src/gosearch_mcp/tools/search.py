@@ -1,9 +1,10 @@
 from typing import Annotated
 
 import httpx
+from fastmcp import Context
 from pydantic import BaseModel, Field
 
-from gosearch_mcp.client import get_api_token, http_client
+from gosearch_mcp.client import get_authorization_header, http_client
 
 
 class GoLink(BaseModel):
@@ -36,9 +37,12 @@ class SearchResponse(BaseModel):
 async def search(
     query: Annotated[str, Field(description="The search query.", min_length=1)],
     service: Annotated[str | None, Field(description="Filter by service name (e.g. google-drive, slack, jira).")] = None,
+    ctx: Context | None = None,
 ) -> str:
     """Search GoSearch for relevant results."""
-    token = get_api_token()
+    if ctx is None:
+        raise PermissionError("Missing request context.")
+    authorization = get_authorization_header(ctx)
 
     params = {
         k: v
@@ -50,7 +54,7 @@ async def search(
         response = await http_client.get(
             "/search",
             params=params,
-            headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": authorization},
         )
     except httpx.TimeoutException:
         raise TimeoutError("Request to GoSearch API timed out.")

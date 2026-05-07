@@ -2,9 +2,10 @@ import re
 from typing import Annotated
 
 import httpx
+from fastmcp import Context
 from pydantic import BaseModel, Field
 
-from gosearch_mcp.client import get_api_token, http_client
+from gosearch_mcp.client import get_authorization_header, http_client
 
 
 class Link(BaseModel):
@@ -32,9 +33,12 @@ class GoAIResponse(BaseModel):
 async def goai_response(
     prompt: Annotated[str, Field(description="The user's prompt to which the AI should respond.", min_length=1)],
     ephemeral: Annotated[bool, Field(description="If true, single response without creating a conversation.")] = True,
+    ctx: Context | None = None,
 ) -> str:
     """Get an AI-generated response from GoAI, powered by the organization's knowledge base."""
-    token = get_api_token()
+    if ctx is None:
+        raise PermissionError("Missing request context.")
+    authorization = get_authorization_header(ctx)
 
     data = {"prompt": prompt, "ephemeral": ephemeral}
 
@@ -42,7 +46,7 @@ async def goai_response(
         response = await http_client.post(
             "/goai/response",
             data=data,
-            headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": authorization},
         )
     except httpx.TimeoutException:
         raise TimeoutError("Request to GoSearch API timed out.")
