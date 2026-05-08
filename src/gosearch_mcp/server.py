@@ -21,7 +21,7 @@ async def oauth_authorization_server_metadata(request: Request) -> JSONResponse:
     return JSONResponse(
         {
             "issuer": "https://www.gosearch.ai",
-            "authorization_endpoint": "https://www.gosearch.ai/d/api/oauth/authorize",
+            "authorization_endpoint": "https://www.gosearch.ai/oauth/authorize",
             "token_endpoint": "https://www.gosearch.ai/d/api/oauth/token",
             "revocation_endpoint": "https://www.gosearch.ai/d/api/oauth/revoke",
             "response_types_supported": ["code"],
