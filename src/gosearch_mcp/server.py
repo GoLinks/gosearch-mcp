@@ -16,6 +16,30 @@ async def health(request: Request) -> JSONResponse:
     return JSONResponse({"status": "ok"})
 
 
+@mcp.custom_route("/.well-known/oauth-protected-resource", methods=["GET"])
+async def oauth_protected_resource_metadata(request: Request) -> JSONResponse:
+    return JSONResponse(
+        {
+            "resource": "https://mcp.gosearch.ai",
+            "authorization_servers": ["https://www.gosearch.ai"],
+            "scopes_supported": ["search:read", "goai:read"],
+            "bearer_methods_supported": ["header"],
+        }
+    )
+
+
+@mcp.custom_route("/.well-known/oauth-protected-resource/mcp", methods=["GET"])
+async def oauth_protected_resource_metadata_mcp(request: Request) -> JSONResponse:
+    return JSONResponse(
+        {
+            "resource": "https://mcp.gosearch.ai/mcp",
+            "authorization_servers": ["https://www.gosearch.ai"],
+            "scopes_supported": ["search:read", "goai:read"],
+            "bearer_methods_supported": ["header"],
+        }
+    )
+
+
 @mcp.custom_route("/.well-known/oauth-authorization-server", methods=["GET"])
 async def oauth_authorization_server_metadata(request: Request) -> JSONResponse:
     return JSONResponse(
