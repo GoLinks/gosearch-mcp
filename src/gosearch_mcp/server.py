@@ -21,7 +21,7 @@ async def oauth_protected_resource_metadata(request: Request) -> JSONResponse:
     return JSONResponse(
         {
             "resource": "https://mcp.gosearch.ai",
-            "authorization_servers": ["https://www.gosearch.ai"],
+            "authorization_servers": ["https://mcp.gosearch.ai"],
             "scopes_supported": ["search:read", "goai:read"],
             "bearer_methods_supported": ["header"],
         }
@@ -33,7 +33,7 @@ async def oauth_protected_resource_metadata_mcp(request: Request) -> JSONRespons
     return JSONResponse(
         {
             "resource": "https://mcp.gosearch.ai/mcp",
-            "authorization_servers": ["https://www.gosearch.ai"],
+            "authorization_servers": ["https://mcp.gosearch.ai"],
             "scopes_supported": ["search:read", "goai:read"],
             "bearer_methods_supported": ["header"],
         }
