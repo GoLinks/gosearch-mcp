@@ -1,6 +1,8 @@
 import fastmcp
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
+from starlette.types import ASGIApp
 
 from gosearch_mcp.tools.goai import goai_response
 from gosearch_mcp.tools.search import search
@@ -9,6 +11,34 @@ mcp = fastmcp.FastMCP("GoSearch")
 
 mcp.add_tool(search)
 mcp.add_tool(goai_response)
+
+
+class RequireBearerOnMCP(BaseHTTPMiddleware):
+    """Return 401 + WWW-Authenticate on /mcp when no Bearer token is present.
+
+    Without this, MCP clients (e.g. Claude) skip OAuth discovery and treat the
+    connector as unauthenticated.
+    """
+
+    def __init__(self, app: ASGIApp, resource_metadata_url: str) -> None:
+        super().__init__(app)
+        self._resource_metadata_url = resource_metadata_url
+
+    async def dispatch(self, request: Request, call_next) -> Response:
+        if request.url.path == "/mcp":
+            auth = request.headers.get("authorization", "")
+            if not auth.lower().startswith("bearer "):
+                return JSONResponse(
+                    {"error": "unauthorized"},
+                    status_code=401,
+                    headers={
+                        "WWW-Authenticate": (
+                            f'Bearer realm="GoSearch MCP", '
+                            f'resource_metadata="{self._resource_metadata_url}"'
+                        )
+                    },
+                )
+        return await call_next(request)
 
 
 @mcp.custom_route("/health", methods=["GET"])

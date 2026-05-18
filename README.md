@@ -45,12 +45,10 @@ uv sync
 4. Run the MCP server locally:
 
 ```bash
-uv run fastmcp run src/gosearch_mcp/server.py \
-  --transport streamable-http \
-  --host 0.0.0.0 \
-  --port 8000 \
-  --path /mcp
+uv run python -m gosearch_mcp
 ```
+
+Optional env vars: `MCP_HOST`, `MCP_PORT`, `MCP_RESOURCE_METADATA_URL`.
 
 5. Verify health and OAuth discovery:
 
