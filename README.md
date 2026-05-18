@@ -9,13 +9,13 @@ This server is intended to run as a hosted remote MCP server over Streamable HTT
 Public endpoint shape:
 
 ```text
-https://mcp.gosearch.ai/mcp/
+https://mcp.gosearch.ai/mcp
 ```
 
 Local development endpoint shape:
 
 ```text
-http://localhost:8000/mcp/
+http://localhost:8000/mcp
 ```
 
 ## Authentication
@@ -49,7 +49,7 @@ uv run fastmcp run src/gosearch_mcp/server.py \
   --transport streamable-http \
   --host 0.0.0.0 \
   --port 8000 \
-  --path /mcp/
+  --path /mcp
 ```
 
 5. Verify health and OAuth discovery:
