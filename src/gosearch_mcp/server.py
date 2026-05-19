@@ -18,6 +18,8 @@ mcp.add_tool(
         annotations=ToolAnnotations(
             title="Search GoSearch",
             readOnlyHint=True,
+            destructiveHint=False,
+            idempotentHint=True,
             openWorldHint=False,
         ),
     )
@@ -29,6 +31,8 @@ mcp.add_tool(
         annotations=ToolAnnotations(
             title="Ask GoAI",
             readOnlyHint=True,
+            destructiveHint=False,
+            idempotentHint=False,
             openWorldHint=False,
         ),
     )
@@ -74,7 +78,7 @@ async def oauth_protected_resource_metadata(request: Request) -> JSONResponse:
         {
             "resource": "https://mcp.gosearch.ai",
             "authorization_servers": ["https://mcp.gosearch.ai"],
-            "scopes_supported": ["search:read", "goai:read"],
+            "scopes_supported": ["search:read", "goai:write"],
             "bearer_methods_supported": ["header"],
         }
     )
@@ -86,7 +90,7 @@ async def oauth_protected_resource_metadata_mcp(request: Request) -> JSONRespons
         {
             "resource": "https://mcp.gosearch.ai/mcp",
             "authorization_servers": ["https://mcp.gosearch.ai"],
-            "scopes_supported": ["search:read", "goai:read"],
+            "scopes_supported": ["search:read", "goai:write"],
             "bearer_methods_supported": ["header"],
         }
     )
@@ -106,7 +110,7 @@ async def oauth_authorization_server_metadata(request: Request) -> JSONResponse:
             "token_endpoint_auth_methods_supported": ["none"],
             "scopes_supported": [
                 "search:read",
-                "goai:read",
+                "goai:write",
             ],
         }
     )
