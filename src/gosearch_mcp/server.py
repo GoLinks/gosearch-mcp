@@ -1,4 +1,6 @@
 import fastmcp
+from fastmcp.tools.function_tool import FunctionTool
+from mcp.types import ToolAnnotations
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -9,8 +11,32 @@ from gosearch_mcp.tools.search import search
 
 mcp = fastmcp.FastMCP("GoSearch")
 
-mcp.add_tool(search)
-mcp.add_tool(goai_response)
+mcp.add_tool(
+    FunctionTool.from_function(
+        search,
+        title="Search GoSearch",
+        annotations=ToolAnnotations(
+            title="Search GoSearch",
+            readOnlyHint=True,
+            destructiveHint=False,
+            idempotentHint=True,
+            openWorldHint=False,
+        ),
+    )
+)
+mcp.add_tool(
+    FunctionTool.from_function(
+        goai_response,
+        title="Ask GoAI",
+        annotations=ToolAnnotations(
+            title="Ask GoAI",
+            readOnlyHint=True,
+            destructiveHint=False,
+            idempotentHint=False,
+            openWorldHint=False,
+        ),
+    )
+)
 
 
 class RequireBearerOnMCP(BaseHTTPMiddleware):
@@ -52,7 +78,7 @@ async def oauth_protected_resource_metadata(request: Request) -> JSONResponse:
         {
             "resource": "https://mcp.gosearch.ai",
             "authorization_servers": ["https://mcp.gosearch.ai"],
-            "scopes_supported": ["search:read", "goai:read"],
+            "scopes_supported": ["search:read", "goai:write"],
             "bearer_methods_supported": ["header"],
         }
     )
@@ -64,7 +90,7 @@ async def oauth_protected_resource_metadata_mcp(request: Request) -> JSONRespons
         {
             "resource": "https://mcp.gosearch.ai/mcp",
             "authorization_servers": ["https://mcp.gosearch.ai"],
-            "scopes_supported": ["search:read", "goai:read"],
+            "scopes_supported": ["search:read", "goai:write"],
             "bearer_methods_supported": ["header"],
         }
     )
@@ -84,7 +110,7 @@ async def oauth_authorization_server_metadata(request: Request) -> JSONResponse:
             "token_endpoint_auth_methods_supported": ["none"],
             "scopes_supported": [
                 "search:read",
-                "goai:read",
+                "goai:write",
             ],
         }
     )

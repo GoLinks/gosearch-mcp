@@ -35,7 +35,15 @@ async def goai_response(
     ephemeral: Annotated[bool, Field(description="If true, single response without creating a conversation.")] = True,
     ctx: Context | None = None,
 ) -> str:
-    """Get an AI-generated response from GoAI, powered by the organization's knowledge base."""
+    """Ask GoAI a question via the GoSearch /goai/response API
+    (https://www.gosearch.ai). GoAI generates an answer grounded in the
+    user's organization knowledge base (the same content surfaced by the
+    search tool) and returns the answer with citations.
+
+    Use when the user asks a question that needs a synthesized answer
+    rather than a list of links - e.g. 'how do I request PTO?' or
+    'what's our refund policy?'. Read-only.
+    """
     if ctx is None:
         raise PermissionError("Missing request context.")
     authorization = get_authorization_header(ctx)
@@ -54,11 +62,14 @@ async def goai_response(
         raise ConnectionError("Failed to connect to GoSearch API.")
 
     if response.status_code == 401:
-        raise PermissionError("Invalid or expired API token.")
+        raise PermissionError("Invalid or expired access token.")
     if response.status_code == 429:
-        raise RuntimeError("Rate limit exceeded. Please try again later.")
+        raise RuntimeError("GoSearch rate limit exceeded. Please try again later.")
     if response.status_code != 200:
-        raise RuntimeError(f"GoSearch API returned status {response.status_code}.")
+        raise RuntimeError(
+            f"GoSearch /goai/response API returned status {response.status_code}: "
+            f"{response.text[:500]}"
+        )
 
     return format_response(GoAIResponse.model_validate(response.json()))
 
