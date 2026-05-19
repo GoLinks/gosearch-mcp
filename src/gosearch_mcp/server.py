@@ -3,7 +3,7 @@ from fastmcp.tools.function_tool import FunctionTool
 from mcp.types import ToolAnnotations
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
+from starlette.responses import JSONResponse, PlainTextResponse, Response
 from starlette.types import ASGIApp
 
 from gosearch_mcp.tools.goai import goai_response
@@ -70,6 +70,14 @@ class RequireBearerOnMCP(BaseHTTPMiddleware):
 @mcp.custom_route("/health", methods=["GET"])
 async def health(request: Request) -> JSONResponse:
     return JSONResponse({"status": "ok"})
+
+
+OPENAI_APPS_CHALLENGE_TOKEN = "8gUiqxR0tTn1b3AoXif1xa1l0Egd8XPaSkaiB1Su0KE"
+
+
+@mcp.custom_route("/.well-known/openai-apps-challenge", methods=["GET"])
+async def openai_apps_challenge(request: Request) -> PlainTextResponse:
+    return PlainTextResponse(OPENAI_APPS_CHALLENGE_TOKEN)
 
 
 @mcp.custom_route("/.well-known/oauth-protected-resource", methods=["GET"])
