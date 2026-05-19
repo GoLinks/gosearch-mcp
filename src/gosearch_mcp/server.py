@@ -1,4 +1,6 @@
 import fastmcp
+from fastmcp.tools.function_tool import FunctionTool
+from mcp.types import ToolAnnotations
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -9,8 +11,28 @@ from gosearch_mcp.tools.search import search
 
 mcp = fastmcp.FastMCP("GoSearch")
 
-mcp.add_tool(search)
-mcp.add_tool(goai_response)
+mcp.add_tool(
+    FunctionTool.from_function(
+        search,
+        title="Search GoSearch",
+        annotations=ToolAnnotations(
+            title="Search GoSearch",
+            readOnlyHint=True,
+            openWorldHint=False,
+        ),
+    )
+)
+mcp.add_tool(
+    FunctionTool.from_function(
+        goai_response,
+        title="Ask GoAI",
+        annotations=ToolAnnotations(
+            title="Ask GoAI",
+            readOnlyHint=True,
+            openWorldHint=False,
+        ),
+    )
+)
 
 
 class RequireBearerOnMCP(BaseHTTPMiddleware):

@@ -39,7 +39,13 @@ async def search(
     service: Annotated[str | None, Field(description="Filter by service name (e.g. google-drive, slack, jira).")] = None,
     ctx: Context | None = None,
 ) -> str:
-    """Search GoSearch for relevant results."""
+    """Search the user's GoSearch workspace via the GoSearch /search API
+    (https://www.gosearch.ai). Returns results from the connected SaaS apps
+    (Google Drive, Slack, Jira, Notion, etc.) that the user has access to.
+
+    Use when the user asks to find documents, conversations, tickets, or
+    other content across their organization's connected tools. Read-only.
+    """
     if ctx is None:
         raise PermissionError("Missing request context.")
     authorization = get_authorization_header(ctx)
@@ -62,11 +68,14 @@ async def search(
         raise ConnectionError("Failed to connect to GoSearch API.")
 
     if response.status_code == 401:
-        raise PermissionError("Invalid or expired API token.")
+        raise PermissionError("Invalid or expired access token.")
     if response.status_code == 429:
-        raise RuntimeError("Rate limit exceeded. Please try again later.")
+        raise RuntimeError("GoSearch rate limit exceeded. Please try again later.")
     if response.status_code != 200:
-        raise RuntimeError(f"GoSearch API returned status {response.status_code}.")
+        raise RuntimeError(
+            f"GoSearch /search API returned status {response.status_code}: "
+            f"{response.text[:500]}"
+        )
 
     return format_response(SearchResponse.model_validate(response.json()))
 
